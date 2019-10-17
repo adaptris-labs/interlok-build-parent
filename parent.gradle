@@ -1,0 +1,203 @@
+apply plugin: "distribution"
+
+ext {
+    interlokVersion = '3.9.1-RELEASE'
+    log4j2Version='2.9.1'
+    slf4jVersion='1.7.25'
+
+    interlokSourceConfig = "${projectDir}/src/main/interlok/config"
+    interlokTmpConfigDirectory = "${buildDir}/tmp/config"
+    interlokDistDirectory = "${buildDir}/distribution"
+
+    buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'dev'
+}
+
+distTar.enabled=false
+distZip.enabled=false
+
+configurations {
+    interlokRuntime{}
+    interlokTestRuntime{}
+    interlokVerify{}
+    interlokWar{}
+    antJunit{}
+    all*.exclude group: 'c3p0'
+    all*.exclude group: 'commons-logging'
+    all*.exclude group: 'javamail'
+    all*.exclude group: 'javax.mail', module: 'mail'
+    all*.exclude group: 'org.glassfish.hk2.external'
+    all*.exclude group: 'xalan', module: 'xalan'
+    all*.exclude group: 'net.sf.saxon', module: 'saxon'
+    all*.exclude group: 'org.codehaus.woodstox'
+    all*.exclude group: 'com.fasterxml.woodstox'
+    all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://nexus.adaptris.net/nexus/content/groups/public" }
+    maven { url "https://nexus.adaptris.net/nexus/content/repositories/snapshots" }
+    maven { url "https://nexus.adaptris.net/nexus/content/repositories/releases" }
+}
+
+dependencies { 
+    interlokRuntime ("com.adaptris:interlok-core:$interlokVersion") { changing= true}
+    interlokRuntime ("com.adaptris:interlok-common:$interlokVersion") { changing= true}
+    interlokRuntime ("com.adaptris:interlok-boot:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-logging:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-varsub:$interlokVersion") { changing=true }
+
+    interlokRuntime ("org.slf4j:slf4j-api:$slf4jVersion")
+    interlokRuntime ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
+    interlokRuntime ("org.slf4j:jul-to-slf4j:$slf4jVersion")
+    interlokRuntime ("org.apache.logging.log4j:log4j-core:$log4j2Version")
+    interlokRuntime ("org.apache.logging.log4j:log4j-1.2-api:$log4j2Version")
+    interlokRuntime ("org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}")
+    interlokRuntime ("org.apache.logging.log4j:log4j-api:$log4j2Version")
+
+    interlokTestRuntime ("com.adaptris:interlok-service-tester:$interlokVersion") { changing=true }
+    interlokTestRuntime files("./src/test/resources/")
+
+    interlokVerify files("$interlokTmpConfigDirectory"){
+        builtBy 'localizeConfig'
+    }
+
+    antJunit ("org.apache.ant:ant-junit:1.10.7")
+}
+
+task localizeConfig(type: Copy) {
+    from "${interlokSourceConfig}"
+    into "${interlokTmpConfigDirectory}"
+    doLast {
+        overwriteWithTemplate("log4j2.xml", "${interlokTmpConfigDirectory}")
+        overwriteWithPropertiesTemplate("variables-local", "${interlokTmpConfigDirectory}")
+        ant.propertyfile(
+            file: "${interlokTmpConfigDirectory}/version.properties") {
+            entry( key: "build.version", value: "${version}")
+            entry( key: "interlok.core.version", value: "${interlokVersion}")
+            entry( key: "interlok.war.version", value: "${interlokVersion}")
+        }
+    }
+}
+
+task interlokVersionReport(type: JavaExec, dependsOn: localizeConfig) {
+    group = 'Verification'
+    description = 'Check if Interlok versions using -version'
+    workingDir = new File("${buildDir}/tmp")
+    classpath {
+      [configurations.interlokRuntime.asPath,
+      configurations.interlokVerify.asPath]
+    }
+    main = 'com.adaptris.core.management.SimpleBootstrap'
+    args "-version"
+}
+
+task interlokVerify(type: JavaExec, dependsOn: localizeConfig) {
+    group = 'Verification'
+    description = 'Check if Interlok config is valid using -configtest'
+    doFirst {
+      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
+      ant.copy file: "${projectDir}/src/test/resources/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+    }
+    workingDir = new File("${buildDir}/tmp")
+    classpath {
+      [configurations.interlokRuntime.asPath,
+      configurations.interlokVerify.asPath]
+    }
+    main = 'com.adaptris.core.management.SimpleBootstrap'
+    args "-configtest"
+
+    doLast {
+      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+    }
+}
+  
+task interlokServiceTest{
+    group = 'Test'
+    description = 'Execute Interlok service tests'
+    onlyIf{
+      new File("$projectDir/src/test/interlok/service-test.xml").exists()
+    }
+    doLast {
+      javaexec {
+        main = 'com.adaptris.tester.runners.TestExecutor'
+        classpath { 
+          [configurations.interlokRuntime.asPath, 
+          configurations.interlokTestRuntime.asPath,
+          files("$projectDir/src/test/resources/")]
+        }
+        args "-serviceTest"
+        args "$projectDir/src/test/interlok/service-test.xml"
+        args "-serviceTestOutput"
+        args "$buildDir/reports/unit/"
+      }
+    }
+}
+
+task interlokServiceTestReport {
+    group = 'Test'
+    description = 'Create Interlok service test reports'
+    onlyIf{
+      interlokServiceTest.didWork
+    }
+    doLast {
+      mkdir "$buildDir/reports/html"
+      ant.taskdef(
+        name: 'junitreport',
+        classname: 'org.apache.tools.ant.taskdefs.optional.junit.XMLResultAggregator',
+        classpath: configurations.antJunit.asPath
+      )
+
+      ant.junitreport(todir: "$buildDir/reports/html") {
+        fileset(dir: "$buildDir/reports/unit", includes: 'TEST-*.xml')
+        report(todir: "$buildDir/reports/html", format: "frames"	)
+      }
+    }
+}
+
+distributions {
+    main {
+        contents {
+            into('') {
+                from ("src/main/interlok")
+                exclude "config"
+            }
+            into('config') {
+                from(localizeConfig)
+            }
+            into('lib') {
+                from(project.configurations.interlokRuntime)
+            }
+            into('webapps') {
+                from(project.configurations.interlokWar)
+            }
+            rename '(.*)-[0-9]+\\..*.jar', '$1.jar'
+            rename '(.*)-[0-9]+\\..*.war', '$1.war'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+    }
+}
+
+installDist {
+    destinationDir = new File(interlokDistDirectory)
+}
+
+interlokServiceTest.finalizedBy interlokServiceTestReport
+check.dependsOn interlokVersionReport
+check.dependsOn interlokVerify
+check.dependsOn interlokServiceTest
+assemble.dependsOn installDist
+
+def overwriteWithPropertiesTemplate(file, dir){
+    if(new File("${dir}/${file}-${buildEnv}.properties").exists()){
+        ant.copy(file: "${dir}/${file}-${buildEnv}.properties", tofile: "${dir}/${file}.properties", overwrite: 'true')
+    }
+    delete fileTree(dir) { include "${file}-*.properties" }
+}
+
+def overwriteWithTemplate(file, dir){
+    if(new File("${dir}/${file}.${buildEnv}").exists()){
+        ant.copy(file: "${dir}/${file}.${buildEnv}", tofile: "${dir}/${file}", overwrite: 'true')
+    }
+    delete fileTree(dir) { include "${file}.*" }
+}
