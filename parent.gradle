@@ -9,7 +9,7 @@ ext {
     interlokTmpConfigDirectory = "${buildDir}/tmp/config"
     interlokDistDirectory = "${buildDir}/distribution"
 
-    buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'dev'
+    buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'env'
 }
 
 distTar.enabled=false
