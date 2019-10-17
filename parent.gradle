@@ -106,6 +106,7 @@ task interlokVerify(type: JavaExec, dependsOn: localizeConfig) {
     }
     main = 'com.adaptris.core.management.SimpleBootstrap'
     args "-configtest"
+    environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
 
     doLast {
       ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
