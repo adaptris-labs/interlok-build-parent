@@ -1,7 +1,7 @@
 apply plugin: "distribution"
 
 ext {
-    interlokVersion = '3.9.1-RELEASE'
+    interlokVersion = '3.9.2-RELEASE'
     log4j2Version='2.9.1'
     slf4jVersion='1.7.25'
 
@@ -31,6 +31,8 @@ configurations {
     all*.exclude group: 'org.codehaus.woodstox'
     all*.exclude group: 'com.fasterxml.woodstox'
     all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
+    all*.exclude group: 'javax.el', module: 'javax.el-api'
+    all*.exclude group: 'org.hibernate', module: 'hibernate-validator'
 }
 
 repositories {
