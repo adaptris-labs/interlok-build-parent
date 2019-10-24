@@ -7,9 +7,8 @@ The suggested name was bookish-parakeet.
 ```
 // build.gradle
 ext {
-    version = project.hasProperty('version') ? project.getProperty('version') : '0.0.0'
-    interlokVersion = project.hasProperty('interlokVersion') ? project.getProperty('interlokVersion') : '3.9.1-RELEASE'
-    interlokParentGradle = project.hasProperty('interlokParentGradle') ? project.getProperty('interlokParentGradle') : "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/${interlokVersion}/parent.gradle"
+    interlokVersion = '3.9.2-RELEASE'
+    interlokParentGradle = "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/${interlokVersion}/parent.gradle"
 }
 
 allprojects {
