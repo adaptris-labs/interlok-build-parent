@@ -97,8 +97,10 @@ task interlokVerify(type: JavaExec, dependsOn: localizeConfig) {
     group = 'Verification'
     description = 'Check if Interlok config is valid using -configtest'
     doFirst {
-      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
-      ant.copy file: "${projectDir}/src/test/resources/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+      if(new File("${projectDir}/src/test/resources/log4j2.xml").exists()) {
+        ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
+        ant.copy file: "${projectDir}/src/test/resources/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+      }
     }
     workingDir = new File("${buildDir}/tmp")
     classpath {
@@ -111,7 +113,9 @@ task interlokVerify(type: JavaExec, dependsOn: localizeConfig) {
     systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
 
     doLast {
-      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+      if(new File("$interlokTmpConfigDirectory/log4j2.xml.bk").exists()) {
+        ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+      }
     }
 }
   
