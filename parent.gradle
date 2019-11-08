@@ -64,6 +64,7 @@ dependencies {
   interlokRuntime ("com.adaptris:interlok-common:$interlokVersion") { changing= true}
   interlokRuntime ("com.adaptris:interlok-boot:$interlokVersion") { changing=true }
   interlokRuntime ("com.adaptris:interlok-logging:$interlokVersion") { changing=true }
+  interlokRuntime ("com.adaptris:interlok-varsub:$interlokVersion") { changing=true }
 
   interlokRuntime ("org.slf4j:slf4j-api:$slf4jVersion")
   interlokRuntime ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
