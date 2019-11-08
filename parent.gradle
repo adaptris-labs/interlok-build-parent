@@ -1,15 +1,32 @@
 apply plugin: "distribution"
 
 ext {
-    interlokVersion = '3.9.2-RELEASE'
-    log4j2Version='2.11.2'
-    slf4jVersion='1.7.29'
+  nexusBaseUrl  = 'https://nexus.adaptris.net'
+  log4j2Version='2.11.2'
+  slf4jVersion='1.7.29'
+  interlokSourceConfig = "${projectDir}/src/main/interlok/config"
+  interlokTmpConfigDirectory = "${buildDir}/tmp/config"
+  interlokTmpLibDirectory = "${buildDir}/tmp/lib"
+  interlokDistDirectory = project.hasProperty('interlokDistDirectory') ? project.getProperty('interlokDistDirectory') :  "${buildDir}/distribution"
+  buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'NoBuildEnv'
+}
 
-    interlokSourceConfig = "${projectDir}/src/main/interlok/config"
-    interlokTmpConfigDirectory = "${buildDir}/tmp/config"
-    interlokDistDirectory = "${buildDir}/distribution"
+ext.isDevMode = { ->
+  return buildEnv.equals("dev")
+}
 
-    buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'env'
+def overwriteWithPropertiesTemplate(file, dir){
+    if(new File("${dir}/${file}-${buildEnv}.properties").exists()){
+        ant.copy(file: "${dir}/${file}-${buildEnv}.properties", tofile: "${dir}/${file}.properties", overwrite: 'true')
+    }
+    delete fileTree(dir) { include "${file}-*.properties" }
+}
+
+def overwriteWithTemplate(file, dir){
+    if(new File("${dir}/${file}.${buildEnv}").exists()){
+        ant.copy(file: "${dir}/${file}.${buildEnv}", tofile: "${dir}/${file}", overwrite: 'true')
+    }
+    delete fileTree(dir) { include "${file}.*" }
 }
 
 distTar.enabled=false
@@ -18,6 +35,7 @@ distZip.enabled=false
 configurations {
     interlokRuntime{}
     interlokTestRuntime{}
+    interlokJavadocs{}
     interlokVerify{}
     interlokWar{}
     antJunit{}
@@ -37,33 +55,34 @@ configurations {
 
 repositories {
     mavenCentral()
-    maven { url "https://nexus.adaptris.net/nexus/content/groups/public" }
-    maven { url "https://nexus.adaptris.net/nexus/content/groups/interlok" }
+    maven { url "${nexusBaseUrl}/nexus/content/groups/public" }
+    maven { url "${nexusBaseUrl}/nexus/content/groups/interlok" }
 }
 
-dependencies { 
-    interlokRuntime ("com.adaptris:interlok-core:$interlokVersion") { changing= true}
-    interlokRuntime ("com.adaptris:interlok-common:$interlokVersion") { changing= true}
-    interlokRuntime ("com.adaptris:interlok-boot:$interlokVersion") { changing=true }
-    interlokRuntime ("com.adaptris:interlok-logging:$interlokVersion") { changing=true }
-    interlokRuntime ("com.adaptris:interlok-varsub:$interlokVersion") { changing=true }
+dependencies {
+  interlokRuntime ("com.adaptris:interlok-core:$interlokVersion") { changing= true}
+  interlokRuntime ("com.adaptris:interlok-common:$interlokVersion") { changing= true}
+  interlokRuntime ("com.adaptris:interlok-boot:$interlokVersion") { changing=true }
+  interlokRuntime ("com.adaptris:interlok-logging:$interlokVersion") { changing=true }
 
-    interlokRuntime ("org.slf4j:slf4j-api:$slf4jVersion")
-    interlokRuntime ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-    interlokRuntime ("org.slf4j:jul-to-slf4j:$slf4jVersion")
-    interlokRuntime ("org.apache.logging.log4j:log4j-core:$log4j2Version")
-    interlokRuntime ("org.apache.logging.log4j:log4j-1.2-api:$log4j2Version")
-    interlokRuntime ("org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}")
-    interlokRuntime ("org.apache.logging.log4j:log4j-api:$log4j2Version")
+  interlokRuntime ("org.slf4j:slf4j-api:$slf4jVersion")
+  interlokRuntime ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
+  interlokRuntime ("org.slf4j:jul-to-slf4j:$slf4jVersion")
+  interlokRuntime ("org.apache.logging.log4j:log4j-core:$log4j2Version")
+  interlokRuntime ("org.apache.logging.log4j:log4j-1.2-api:$log4j2Version")
+  interlokRuntime ("org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}")
+  interlokRuntime ("org.apache.logging.log4j:log4j-api:$log4j2Version")
 
-    interlokTestRuntime ("com.adaptris:interlok-service-tester:$interlokVersion") { changing=true }
-    interlokTestRuntime files("./src/test/resources/")
+  interlokTestRuntime ("com.adaptris:interlok-service-tester:$interlokVersion") { changing=true }
+  interlokWar  ("com.adaptris.ui:interlok:$interlokUiVersion@war") {changing=true}
 
-    interlokVerify files("$interlokTmpConfigDirectory"){
-        builtBy 'localizeConfig'
-    }
+  interlokVerify files("$interlokTmpConfigDirectory"){
+      builtBy 'localizeConfig'
+  }
+  interlokJavadocs group: "com.adaptris", name: "interlok-core", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
+  interlokJavadocs group: "com.adaptris", name: "interlok-common", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
 
-    antJunit ("org.apache.ant:ant-junit:1.10.7")
+  antJunit ("org.apache.ant:ant-junit:1.10.7")
 }
 
 task localizeConfig(type: Copy) {
@@ -76,24 +95,35 @@ task localizeConfig(type: Copy) {
             file: "${interlokTmpConfigDirectory}/version.properties") {
             entry( key: "build.version", value: "${version}")
             entry( key: "interlok.core.version", value: "${interlokVersion}")
-            entry( key: "interlok.war.version", value: "${interlokVersion}")
+            entry( key: "interlok.war.version", value: "${interlokUiVersion}")
         }
     }
 }
 
-task interlokVersionReport(type: JavaExec, dependsOn: localizeConfig) {
-    group = 'Verification'
-    description = 'Check if Interlok versions using -version'
-    workingDir = new File("${buildDir}/tmp")
-    classpath {
-      [configurations.interlokRuntime.asPath,
-      configurations.interlokVerify.asPath]
+
+task verifyLauncherJar(type: Jar) {
+    ext.verifyLauncherClasspath = { ->
+      def verifyLibs = [configurations.interlokRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
+              configurations.interlokVerify.collect { "file:///" + it.getCanonicalPath() + "/" }.join(' ')]
+      return verifyLibs.join(' ')
     }
+    appendix = "verify-launcher"
+    manifest {
+        attributes ("Class-Path": verifyLauncherClasspath())
+    }
+}
+
+task interlokVersionReport(type: JavaExec, dependsOn: [localizeConfig, verifyLauncherJar]) {
+    group = 'Verification'
+    description = 'Show Interlok versions using -version'
+    workingDir = new File("${buildDir}/tmp")
+    classpath = files(verifyLauncherJar.archivePath)
+
     main = 'com.adaptris.core.management.SimpleBootstrap'
     args "-version"
 }
 
-task interlokVerify(type: JavaExec, dependsOn: localizeConfig) {
+task interlokVerify(type: JavaExec, dependsOn: [localizeConfig, verifyLauncherJar]) {
     group = 'Verification'
     description = 'Check if Interlok config is valid using -configtest'
     doFirst {
@@ -103,10 +133,7 @@ task interlokVerify(type: JavaExec, dependsOn: localizeConfig) {
       }
     }
     workingDir = new File("${buildDir}/tmp")
-    classpath {
-      [configurations.interlokRuntime.asPath,
-      configurations.interlokVerify.asPath]
-    }
+    classpath = files(verifyLauncherJar.archivePath)
     main = 'com.adaptris.core.management.SimpleBootstrap'
     args "-configtest"
     environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
@@ -118,27 +145,33 @@ task interlokVerify(type: JavaExec, dependsOn: localizeConfig) {
       }
     }
 }
-  
-task interlokServiceTest{
+
+task serviceTesterLauncherJar(type: Jar) {
+    appendix = "service-tester-launcher"
+    ext.serviceTesterClasspath = { ->
+      def testerLibs = [configurations.interlokRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
+              configurations.interlokTestRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
+              "file:///" + new File("$projectDir/src/test/resources").getCanonicalPath() + "/"]
+      return testerLibs.join(' ')
+    }
+    manifest {
+        attributes ("Class-Path": serviceTesterClasspath())
+    }
+}
+
+
+task interlokServiceTest(type: JavaExec, dependsOn: serviceTesterLauncherJar){
     group = 'Test'
     description = 'Execute Interlok service tests'
-    onlyIf{
+    onlyIf {
       new File("$projectDir/src/test/interlok/service-test.xml").exists()
     }
-    doLast {
-      javaexec {
-        main = 'com.adaptris.tester.runners.TestExecutor'
-        classpath { 
-          [configurations.interlokRuntime.asPath, 
-          configurations.interlokTestRuntime.asPath,
-          files("$projectDir/src/test/resources/")]
-        }
-        args "-serviceTest"
-        args "$projectDir/src/test/interlok/service-test.xml"
-        args "-serviceTestOutput"
-        args "$buildDir/reports/unit/"
-      }
-    }
+    main = 'com.adaptris.tester.runners.TestExecutor'
+    classpath = files(serviceTesterLauncherJar.archivePath)
+    args "-serviceTest"
+    args "$projectDir/src/test/interlok/service-test.xml"
+    args "-serviceTestOutput"
+    args "$buildDir/reports/unit/"
 }
 
 task interlokServiceTestReport {
@@ -162,6 +195,16 @@ task interlokServiceTestReport {
     }
 }
 
+
+task serviceTesterDist(type: Copy) {
+  onlyIf {
+    isDevMode()
+  }
+  from project.configurations.interlokTestRuntime
+  into interlokTmpLibDirectory
+}
+
+
 distributions {
     main {
         contents {
@@ -174,9 +217,13 @@ distributions {
             }
             into('lib') {
                 from(project.configurations.interlokRuntime)
+                from(serviceTesterDist)
             }
             into('webapps') {
                 from(project.configurations.interlokWar)
+            }
+            into('docs/javadocs') {
+              from(project.configurations.interlokJavadocs)
             }
             rename '(.*)-[0-9]+\\..*.jar', '$1.jar'
             rename '(.*)-[0-9]+\\..*.war', '$1.war'
@@ -190,21 +237,7 @@ installDist {
 }
 
 interlokServiceTest.finalizedBy interlokServiceTestReport
-check.dependsOn interlokVersionReport
-check.dependsOn interlokVerify
-check.dependsOn interlokServiceTest
+check.dependsOn interlokVerify,interlokServiceTest,interlokVersionReport
 assemble.dependsOn installDist
 
-def overwriteWithPropertiesTemplate(file, dir){
-    if(new File("${dir}/${file}-${buildEnv}.properties").exists()){
-        ant.copy(file: "${dir}/${file}-${buildEnv}.properties", tofile: "${dir}/${file}.properties", overwrite: 'true')
-    }
-    delete fileTree(dir) { include "${file}-*.properties" }
-}
 
-def overwriteWithTemplate(file, dir){
-    if(new File("${dir}/${file}.${buildEnv}").exists()){
-        ant.copy(file: "${dir}/${file}.${buildEnv}", tofile: "${dir}/${file}", overwrite: 'true')
-    }
-    delete fileTree(dir) { include "${file}.*" }
-}
