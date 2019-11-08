@@ -33,6 +33,8 @@ allprojects {
 
 ```
 
+A full example with configuration is here : (build-parent-json-csv)[https://github.com/adaptris-labs/build-parent-json-csv]
+
 ## Gradle Tasks
 
 * `gradle clean check` will verify the configuration unmarshalls; execute service-tester if `src/test/interlok/service-test.xml` exists; and finally runs a version report.
