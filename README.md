@@ -33,7 +33,7 @@ allprojects {
 
 ```
 
-A full example with configuration is here : (build-parent-json-csv)[https://github.com/adaptris-labs/build-parent-json-csv]
+A full example with configuration is here : [build-parent-json-csv](https://github.com/adaptris-labs/build-parent-json-csv)
 
 ## Gradle Tasks
 
