@@ -2,18 +2,27 @@ apply plugin: "distribution"
 
 ext {
   nexusBaseUrl  = 'https://nexus.adaptris.net'
-  log4j2Version='2.11.2'
+  log4j2Version='2.12.1'
   slf4jVersion='1.7.29'
+  interlokUiVersion = project.hasProperty('interlokUiVersion') ? project.getProperty('interlokUiVersion') : interlokVersion
   interlokSourceConfig = "${projectDir}/src/main/interlok/config"
   interlokTmpConfigDirectory = "${buildDir}/tmp/config"
   interlokTmpLibDirectory = "${buildDir}/tmp/lib"
+  interlokTmpWarDirectory = "${buildDir}/tmp/war"
   interlokDistDirectory = project.hasProperty('interlokDistDirectory') ? project.getProperty('interlokDistDirectory') :  "${buildDir}/distribution"
   buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'NoBuildEnv'
+  includeWar = project.hasProperty('includeWar') ? project.getProperty('includeWar') : 'false'
 }
 
-ext.isDevMode = { ->
-  return buildEnv.equals("dev")
-}
+ext.buildDetails = [
+  isDevMode: { ->
+    return buildEnv.equals("dev")
+  },
+
+  isIncludeWar: { ->
+    return includeWar.equals("true") || buildEnv.equals("dev")
+  }
+]
 
 def overwriteWithPropertiesTemplate(file, dir){
     if(new File("${dir}/${file}-${buildEnv}.properties").exists()){
@@ -199,10 +208,19 @@ task interlokServiceTestReport {
 
 task serviceTesterDist(type: Copy) {
   onlyIf {
-    isDevMode()
+    buildDetails.isDevMode()
   }
   from project.configurations.interlokTestRuntime
   into interlokTmpLibDirectory
+}
+
+
+task interlokWarDist(type: Copy) {
+  onlyIf {
+    buildDetails.isIncludeWar()
+  }
+  from project.configurations.interlokWar
+  into interlokTmpWarDirectory
 }
 
 
@@ -221,7 +239,7 @@ distributions {
                 from(serviceTesterDist)
             }
             into('webapps') {
-                from(project.configurations.interlokWar)
+                from(interlokWarDist)
             }
             into('docs/javadocs') {
               from(project.configurations.interlokJavadocs)
