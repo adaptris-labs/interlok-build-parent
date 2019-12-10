@@ -11,7 +11,7 @@ This is a gradle file that can be applied to your gradle file to simplify things
 ext {
   interlokVersion = '3.9.2-RELEASE'
   interlokUiVersion = interlokVersion
-  interlokParentGradle = "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/master/parent.gradle"
+  interlokParentGradle = "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/master/build.gradle"
 }
 
 configurations {
