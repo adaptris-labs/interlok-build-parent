@@ -9,28 +9,39 @@ This is a gradle file that can be applied to your gradle file to simplify things
 ```
 // build.gradle
 ext {
-  interlokVersion = '3.9.2-RELEASE'
-  interlokUiVersion = interlokVersion
   interlokParentGradle = "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/master/build.gradle"
-}
-
-configurations {
-    interlokRuntime{}
-    interlokTestRuntime{}
-    interlokJavadocs{}
-}
-
-
-dependencies {
-    interlokRuntime ("com.adaptris:interlok-json:$interlokVersion") { changing=true }
-    interlokRuntime ("com.adaptris:interlok-filesystem:$interlokVersion") { changing=true }
-    interlokRuntime ("com.adaptris:interlok-csv-json:$interlokVersion") { changing=true }
 }
 
 allprojects {
     apply from: "${interlokParentGradle}"
 }
 
+dependencies {
+    interlokRuntime ("com.adaptris:interlok-json:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-filesystem:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-csv-json:$interlokVersion") { changing=true }
+}
+```
+
+Or you can override version:
+
+```
+// build.gradle
+ext {
+  interlokVersion = '3.9.2-RELEASE'
+  interlokUiVersion = interlokVersion
+  interlokParentGradle = "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/master/build.gradle"
+}
+
+allprojects {
+    apply from: "${interlokParentGradle}"
+}
+
+dependencies {
+    interlokRuntime ("com.adaptris:interlok-json:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-filesystem:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-csv-json:$interlokVersion") { changing=true }
+}
 ```
 
 A full example with configuration is here : [build-parent-json-csv](https://github.com/adaptris-labs/build-parent-json-csv)
