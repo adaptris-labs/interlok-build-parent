@@ -2,9 +2,28 @@
 
 The suggested name was bookish-parakeet.
 
-This is a gradle file that can be applied to your gradle file to simplify things bootstrapping your Interlok project.
+This is a gradle file that can be applied to your gradle file to simplify things bootstrapping your Interlok project. Gradle 5.x+ is required.
 
 ## Usage
+
+```
+// build.gradle
+ext {
+  interlokParentGradle = "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/master/build.gradle"
+}
+
+allprojects {
+    apply from: "${interlokParentGradle}"
+}
+
+dependencies {
+    interlokRuntime ("com.adaptris:interlok-json:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-filesystem:$interlokVersion") { changing=true }
+    interlokRuntime ("com.adaptris:interlok-csv-json:$interlokVersion") { changing=true }
+}
+```
+
+Or you can override version:
 
 ```
 // build.gradle
@@ -14,23 +33,15 @@ ext {
   interlokParentGradle = "https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/master/build.gradle"
 }
 
-configurations {
-    interlokRuntime{}
-    interlokTestRuntime{}
-    interlokJavadocs{}
+allprojects {
+    apply from: "${interlokParentGradle}"
 }
-
 
 dependencies {
     interlokRuntime ("com.adaptris:interlok-json:$interlokVersion") { changing=true }
     interlokRuntime ("com.adaptris:interlok-filesystem:$interlokVersion") { changing=true }
     interlokRuntime ("com.adaptris:interlok-csv-json:$interlokVersion") { changing=true }
 }
-
-allprojects {
-    apply from: "${interlokParentGradle}"
-}
-
 ```
 
 A full example with configuration is here : [build-parent-json-csv](https://github.com/adaptris-labs/build-parent-json-csv)

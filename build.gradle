@@ -4,6 +4,7 @@ ext {
   nexusBaseUrl  = 'https://nexus.adaptris.net'
   log4j2Version='2.12.1'
   slf4jVersion='1.7.29'
+  interlokVersion = project.hasProperty('interlokVersion') ? project.getProperty('interlokVersion') : '3.9.2-RELEASE'
   interlokUiVersion = project.hasProperty('interlokUiVersion') ? project.getProperty('interlokUiVersion') : interlokVersion
   interlokSourceConfig = "${projectDir}/src/main/interlok/config"
   interlokTmpConfigDirectory = "${buildDir}/tmp/config"
@@ -111,7 +112,7 @@ task localizeConfig(type: Copy) {
 }
 
 
-task verifyLauncherJar(type: Jar) {
+tasks.register("verifyLauncherJar", Jar) {
     ext.verifyLauncherClasspath = { ->
       def verifyLibs = [configurations.interlokRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
               configurations.interlokVerify.collect { "file:///" + it.getCanonicalPath() + "/" }.join(' ')]
@@ -123,7 +124,7 @@ task verifyLauncherJar(type: Jar) {
     }
 }
 
-task interlokVersionReport(type: JavaExec, dependsOn: [localizeConfig, verifyLauncherJar]) {
+def interlokVersionReport = tasks.register("interlokVersionReport", JavaExec) {
     group = 'Verification'
     description = 'Show Interlok versions using -version'
     workingDir = new File("${buildDir}/tmp")
@@ -133,7 +134,12 @@ task interlokVersionReport(type: JavaExec, dependsOn: [localizeConfig, verifyLau
     args "-version"
 }
 
-task interlokVerify(type: JavaExec, dependsOn: [localizeConfig, verifyLauncherJar]) {
+interlokVersionReport.configure {
+    dependsOn localizeConfig
+    dependsOn verifyLauncherJar
+}
+
+def interlokVerify = tasks.register("interlokVerify", JavaExec) {
     group = 'Verification'
     description = 'Check if Interlok config is valid using -configtest'
     doFirst {
@@ -156,7 +162,12 @@ task interlokVerify(type: JavaExec, dependsOn: [localizeConfig, verifyLauncherJa
     }
 }
 
-task serviceTesterLauncherJar(type: Jar) {
+interlokVerify.configure {
+    dependsOn localizeConfig
+    dependsOn verifyLauncherJar
+}
+
+tasks.register("serviceTesterLauncherJar", Jar) {
     appendix = "service-tester-launcher"
     ext.serviceTesterClasspath = { ->
       def testerLibs = [configurations.interlokRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
@@ -169,8 +180,7 @@ task serviceTesterLauncherJar(type: Jar) {
     }
 }
 
-
-task interlokServiceTest(type: JavaExec, dependsOn: serviceTesterLauncherJar){
+def interlokServiceTest = tasks.register("interlokServiceTest", JavaExec) {
     group = 'Test'
     description = 'Execute Interlok service tests'
     onlyIf {
@@ -184,11 +194,15 @@ task interlokServiceTest(type: JavaExec, dependsOn: serviceTesterLauncherJar){
     args "$buildDir/reports/unit/"
 }
 
+interlokServiceTest.configure {
+    dependsOn serviceTesterLauncherJar
+    finalizedBy interlokServiceTestReport
+}
 task interlokServiceTestReport {
     group = 'Test'
     description = 'Create Interlok service test reports'
     onlyIf{
-      interlokServiceTest.didWork
+      interlokServiceTest.get().didWork
     }
     doLast {
       mkdir "$buildDir/reports/html"
@@ -255,7 +269,6 @@ installDist {
     destinationDir = new File(interlokDistDirectory)
 }
 
-interlokServiceTest.finalizedBy interlokServiceTestReport
 check.dependsOn interlokVerify,interlokServiceTest,interlokVersionReport
 assemble.dependsOn installDist
 
