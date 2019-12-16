@@ -2,7 +2,7 @@
 
 The suggested name was bookish-parakeet.
 
-This is a gradle file that can be applied to your gradle file to simplify things bootstrapping your Interlok project.
+This is a gradle file that can be applied to your gradle file to simplify things bootstrapping your Interlok project. Gradle 5.x+ is required.
 
 ## Usage
 
