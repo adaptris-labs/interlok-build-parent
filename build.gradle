@@ -3,7 +3,7 @@ apply plugin: "distribution"
 ext {
   nexusBaseUrl  = 'https://nexus.adaptris.net'
   log4j2Version='2.12.1'
-  slf4jVersion='1.7.29'
+  slf4jVersion='1.7.30'
   interlokVersion = project.hasProperty('interlokVersion') ? project.getProperty('interlokVersion') : '3.9.2-RELEASE'
   interlokUiVersion = project.hasProperty('interlokUiVersion') ? project.getProperty('interlokUiVersion') : interlokVersion
   interlokSourceConfig = "${projectDir}/src/main/interlok/config"
