@@ -62,7 +62,7 @@ java -jar lib/interlok-boot.jar
 ## The bit you probably won't read; but you should.
 
 * You probably want to run clean every time before a build because of the way gradle detects up-to-date files.
-* Because we have custom closures that resolve dependencies (i.e. interlokRuntime); you need to apply from the parent *after all your dependencies are declared* otherwise you get an error.
+* `assemble` is a sync task which means it will delete everything in your distribution directory (i.e. it will delete the UI database if you're running from _build/distribution_)
 
 
 ### Customising your build
