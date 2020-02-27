@@ -63,6 +63,15 @@ configurations {
     all*.exclude group: 'org.hibernate', module: 'hibernate-validator'
 }
 
+
+if (interlokVersion.endsWith("SNAPSHOT") || interlokUiVersion.endsWith("SNAPSHOT")) {
+  allprojects {
+    configurations.all {
+      resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+    }
+  }
+}
+
 repositories {
     mavenCentral()
     maven { url "${nexusBaseUrl}/nexus/content/groups/public" }
