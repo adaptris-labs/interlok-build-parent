@@ -25,6 +25,11 @@ ext.buildDetails = [
   }
 ]
 
+def asFileUrl(filepath) {
+  return new java.net.URL(new java.net.URI("file", filepath, null).toASCIIString()).toString();
+}
+
+
 def overwriteWithPropertiesTemplate(file, dir){
     if(new File("${dir}/${file}-${buildEnv}.properties").exists()){
         ant.copy(file: "${dir}/${file}-${buildEnv}.properties", tofile: "${dir}/${file}.properties", overwrite: 'true')
@@ -123,8 +128,8 @@ task localizeConfig(type: Copy) {
 
 tasks.register("verifyLauncherJar", Jar) {
     ext.verifyLauncherClasspath = { ->
-      def verifyLibs = [configurations.interlokRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
-              configurations.interlokVerify.collect { "file:///" + it.getCanonicalPath() + "/" }.join(' ')]
+      def verifyLibs = [configurations.interlokRuntime.collect { asFileUrl(it.getCanonicalPath()) }.join(' '),
+              configurations.interlokVerify.collect { asFileUrl(it.getCanonicalPath()) + "/" }.join(' ')]
       return verifyLibs.join(' ')
     }
     appendix = "verify-launcher"
@@ -179,9 +184,9 @@ interlokVerify.configure {
 tasks.register("serviceTesterLauncherJar", Jar) {
     appendix = "service-tester-launcher"
     ext.serviceTesterClasspath = { ->
-      def testerLibs = [configurations.interlokRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
-              configurations.interlokTestRuntime.collect { "file:///" + it.getCanonicalPath() }.join(' '),
-              "file:///" + new File("$projectDir/src/test/resources").getCanonicalPath() + "/"]
+      def testerLibs = [configurations.interlokRuntime.collect { asFileUrl(it.getCanonicalPath()) }.join(' '),
+              configurations.interlokTestRuntime.collect { asFileUrl(it.getCanonicalPath()) }.join(' '),
+              asFileUrl(new File("$projectDir/src/test/resources").getCanonicalPath()) + "/"]
       return testerLibs.join(' ')
     }
     manifest {
