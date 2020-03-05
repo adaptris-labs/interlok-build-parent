@@ -212,6 +212,7 @@ interlokServiceTest.configure {
     dependsOn serviceTesterLauncherJar
     finalizedBy interlokServiceTestReport
 }
+
 task interlokServiceTestReport {
     group = 'Test'
     description = 'Create Interlok service test reports'
@@ -233,7 +234,6 @@ task interlokServiceTestReport {
     }
 }
 
-
 task serviceTesterDist(type: Copy) {
   onlyIf {
     buildDetails.isDevMode()
@@ -242,7 +242,6 @@ task serviceTesterDist(type: Copy) {
   into interlokTmpLibDirectory
 }
 
-
 task interlokWarDist(type: Copy) {
   onlyIf {
     buildDetails.isIncludeWar()
@@ -250,7 +249,6 @@ task interlokWarDist(type: Copy) {
   from project.configurations.interlokWar
   into interlokTmpWarDirectory
 }
-
 
 distributions {
     main {
