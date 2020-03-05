@@ -26,7 +26,7 @@ ext.buildDetails = [
 ]
 
 def asFileUrl(filepath) {
-  return new java.net.URL(new java.net.URI("file", filepath, null).toASCIIString()).toString();
+  return "file:///" + new java.net.URI("file", filepath, null).toASCIIString());
 }
 
 
