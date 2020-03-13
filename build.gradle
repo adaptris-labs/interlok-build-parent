@@ -69,6 +69,9 @@ configurations {
     all*.exclude group: 'org.hibernate', module: 'hibernate-validator'
     // INTERLOK-3197 exclude old javax.mail
     all*.exclude group: 'com.sun.mail', module: 'javax.mail'
+    all*.exclude group: 'javax.validation', module: 'validation-api'
+    all*.exclude group: 'javax.activation', module: 'activation'
+    all*.exclude group: 'javax.activation', module: 'javax.activation-api'
 }
 
 
@@ -101,6 +104,8 @@ dependencies {
   interlokRuntime ("org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}")
   interlokRuntime ("org.apache.logging.log4j:log4j-api:$log4j2Version")
   interlokRuntime ("com.sun.mail:jakarta.mail:1.6.5")
+  interlokRuntime ("com.sun.activation:jakarta.activation:1.2.2")
+  interlokRuntime ("jakarta.validation:jakarta.validation-api:2.0.2")
 
   interlokTestRuntime ("com.adaptris:interlok-service-tester:$interlokVersion") { changing=true }
   interlokWar  ("com.adaptris.ui:interlok:$interlokUiVersion@war") {changing=true}
