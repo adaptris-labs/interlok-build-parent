@@ -4,7 +4,7 @@ ext {
   nexusBaseUrl  = 'https://nexus.adaptris.net'
   log4j2Version='2.13.1'
   slf4jVersion='1.7.30'
-  interlokVersion = project.hasProperty('interlokVersion') ? project.getProperty('interlokVersion') : '3.9.3-RELEASE'
+  interlokVersion = project.hasProperty('interlokVersion') ? project.getProperty('interlokVersion') : '3.10.0-RELEASE'
   interlokUiVersion = project.hasProperty('interlokUiVersion') ? project.getProperty('interlokUiVersion') : interlokVersion
   interlokSourceConfig = "${projectDir}/src/main/interlok/config"
   interlokTmpConfigDirectory = "${buildDir}/tmp/config"
@@ -64,10 +64,14 @@ configurations {
     all*.exclude group: 'xalan', module: 'xalan'
     all*.exclude group: 'net.sf.saxon', module: 'saxon'
     all*.exclude group: 'org.codehaus.woodstox'
-    all*.exclude group: 'com.fasterxml.woodstox'
     all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
     all*.exclude group: 'javax.el', module: 'javax.el-api'
     all*.exclude group: 'org.hibernate', module: 'hibernate-validator'
+    // INTERLOK-3197 exclude old javax.mail
+    all*.exclude group: 'com.sun.mail', module: 'javax.mail'
+    all*.exclude group: 'javax.validation', module: 'validation-api'
+    all*.exclude group: 'javax.activation', module: 'activation'
+    all*.exclude group: 'javax.activation', module: 'javax.activation-api'
 }
 
 
@@ -99,6 +103,9 @@ dependencies {
   interlokRuntime ("org.apache.logging.log4j:log4j-1.2-api:$log4j2Version")
   interlokRuntime ("org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}")
   interlokRuntime ("org.apache.logging.log4j:log4j-api:$log4j2Version")
+  interlokRuntime ("com.sun.mail:jakarta.mail:1.6.5")
+  interlokRuntime ("com.sun.activation:jakarta.activation:1.2.2")
+  interlokRuntime ("jakarta.validation:jakarta.validation-api:2.0.2")
 
   interlokTestRuntime ("com.adaptris:interlok-service-tester:$interlokVersion") { changing=true }
   interlokWar  ("com.adaptris.ui:interlok:$interlokUiVersion@war") {changing=true}
