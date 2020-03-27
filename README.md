@@ -71,6 +71,26 @@ There is support for build environments; you can pass in a gradle property to sp
 
 If you don't want to assemble into `./build/distribution` then you can override that location by defining a `interlokDistDirectory=` in your gradle properties (or on the commandline). We generally discourage this, unless you are only running the assemble task.
 
+### Overriding system properties / environment variables during InterlokVerify
+
+If you are expecting environment variables and system properties to be injected at runtime by your build pipeline, then you can spoof those things by setting two additional variables in your build.gradle, `interlokVerifyEnvironmentProperties` & `interlokVerifySystemProperties` respectively; this will makes `check` work w/o you defining additional properties.
+
+```
+interlokVerifyEnvironmentProperties = [
+  DB_HOST: "localhost",
+  DB_PORT: "3306",
+  DB_NAME: "mydatabase",
+  DB_USER: "root",
+  DB_PASSWORD: "honestly-this-is-the-pasword-for-the-production-database",
+  AWS_S3_BUCKET: "some-bucket",
+  AWS_SQS_QUEUE: "queue",
+]
+interlokVerifySystemProperties = [
+  "org.jruby.embed.localcontext.scope": "threadsafe",
+  "org.jboss.logging.provider": "slf4j"
+]
+```
+
 ### Detecting changes to the parent build gradle.
 
 Since we're using `apply from`; this is effectively treated as a script plugin, which means that it is added to your local module cache (`~/.gradle/caches/modules-2` or similar). This cache is managed by the gradle daemon and any changes will be detected automatically (probably daily). However, in some situations you may be after the latest and greatest version of the parent gradle file. If that's the case then you can use the commandline switch _--refresh-dependencies_ to force gradle to refresh the state of all your dependencies : `./gradlew --refresh-dependences clean check assemble`. This should force a re-download of the parent gradle.
