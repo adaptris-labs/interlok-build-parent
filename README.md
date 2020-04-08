@@ -75,14 +75,14 @@ If you don't want to assemble into `./build/distribution` then you can override 
 
 ### Additional Build Specific Configuration
 
-If you need additional build specific configuration, these can be added by setting the follow properties `additionalFilesWithTemplate` or `additionalFilesWithPropertiesTemplate`: 
+If you need additional build specific configuration, these can be added by setting the follow properties `additionalTemplatedConfiguration` or `additionalTemplatedProperties`:
 
 ```
-additionalFilesWithTemplate = [
+additionalTemplatedConfiguration = [
   'jetty.xml'
 ]
 
-additionalFilesWithPropertiesTemplate = [
+additionalTemplatedProperties = [
   'kinesis-local'
 ]
 ```

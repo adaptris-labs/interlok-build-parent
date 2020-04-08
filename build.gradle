@@ -13,8 +13,8 @@ ext {
   interlokDistDirectory = project.hasProperty('interlokDistDirectory') ? project.getProperty('interlokDistDirectory') :  "${buildDir}/distribution"
   buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'NoBuildEnv'
   includeWar = project.hasProperty('includeWar') ? project.getProperty('includeWar') : 'false'
-  additionalFilesWithTemplate = project.hasProperty('additionalFilesWithTemplate') ? project.getProperty('additionalFilesWithTemplate') : []
-  additionalFilesWithPropertiesTemplate = project.hasProperty('additionalFilesWithPropertiesTemplate') ? project.getProperty('additionalFilesWithPropertiesTemplate') : []
+  additionalTemplatedConfiguration = project.hasProperty('additionalTemplatedConfiguration') ? project.getProperty('additionalTemplatedConfiguration') : []
+  additionalTemplatedProperties = project.hasProperty('additionalTemplatedProperties') ? project.getProperty('additionalTemplatedProperties') : []
 }
 
 defaultTasks 'clean', 'check'
@@ -126,11 +126,11 @@ task localizeConfig(type: Copy) {
     into "${interlokTmpConfigDirectory}"
     doLast {
         overwriteWithTemplate("log4j2.xml", "${interlokTmpConfigDirectory}")
-        additionalFilesWithTemplate.each {
+        additionalTemplatedConfiguration.each {
           overwriteWithTemplate("${it}", "${interlokTmpConfigDirectory}")
         }
         overwriteWithPropertiesTemplate("variables-local", "${interlokTmpConfigDirectory}")
-        additionalFilesWithPropertiesTemplate.each {
+        additionalTemplatedProperties.each {
           overwriteWithPropertiesTemplate("${it}", "${interlokTmpConfigDirectory}")
         }
         ant.propertyfile(
