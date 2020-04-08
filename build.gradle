@@ -80,7 +80,7 @@ configurations {
 if (interlokVersion.endsWith("SNAPSHOT") || interlokUiVersion.endsWith("SNAPSHOT")) {
   allprojects {
     configurations.all {
-      resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+      resolutionStrategy.cacheChangingModulesFor 15, "minutes"
     }
   }
 }
