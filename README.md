@@ -69,7 +69,23 @@ java -jar lib/interlok-boot.jar
 
 There is support for build environments; you can pass in a gradle property to specify the build environment `gradle -PbuildEnv=myEnv clean check`. What this does is to copy the file `variables-local-{buildenv}.properties` to variables-local.properties so that you can potentially override various settings on a per build basis. If the `buildEnv` is set to the _dev_ then the service tester jars are copied into the distribution in the expectation that you will be using the UI service tester page.
 
+The same is possible with `log4j2.xml` by creating files with the following pattern `log4j2.xml.{buildenv}`.
+
 If you don't want to assemble into `./build/distribution` then you can override that location by defining a `interlokDistDirectory=` in your gradle properties (or on the commandline). We generally discourage this, unless you are only running the assemble task.
+
+### Additional Build Specific Configuration
+
+If you need additional build specific configuration, these can be added by setting the follow properties `additionalFilesWithTemplate` or `additionalFilesWithPropertiesTemplate`: 
+
+```
+additionalFilesWithTemplate = [
+  'jetty.xml'
+]
+
+additionalFilesWithPropertiesTemplate = [
+  'kinesis-local'
+]
+```
 
 ### Overriding system properties / environment variables during InterlokVerify
 

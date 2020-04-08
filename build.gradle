@@ -13,6 +13,8 @@ ext {
   interlokDistDirectory = project.hasProperty('interlokDistDirectory') ? project.getProperty('interlokDistDirectory') :  "${buildDir}/distribution"
   buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'NoBuildEnv'
   includeWar = project.hasProperty('includeWar') ? project.getProperty('includeWar') : 'false'
+  additionalFilesWithTemplate = project.hasProperty('additionalFilesWithTemplate') ? project.getProperty('additionalFilesWithTemplate') : []
+  additionalFilesWithPropertiesTemplate = project.hasProperty('additionalFilesWithPropertiesTemplate') ? project.getProperty('additionalFilesWithPropertiesTemplate') : []
 }
 
 defaultTasks 'clean', 'check'
@@ -124,7 +126,13 @@ task localizeConfig(type: Copy) {
     into "${interlokTmpConfigDirectory}"
     doLast {
         overwriteWithTemplate("log4j2.xml", "${interlokTmpConfigDirectory}")
+        additionalFilesWithTemplate.each {
+          overwriteWithTemplate("${it}", "${interlokTmpConfigDirectory}")
+        }
         overwriteWithPropertiesTemplate("variables-local", "${interlokTmpConfigDirectory}")
+        additionalFilesWithPropertiesTemplate.each {
+          overwriteWithPropertiesTemplate("${it}", "${interlokTmpConfigDirectory}")
+        }
         ant.propertyfile(
             file: "${interlokTmpConfigDirectory}/version.properties") {
             entry( key: "build.version", value: "${version}")
