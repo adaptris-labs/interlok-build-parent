@@ -308,11 +308,11 @@ installDist {
     destinationDir = new File(interlokDistDirectory)
 }
 
-dependencyCheckAnalyze {
-  onlyIf {
-    !buildDetails.isDevMode()
-  }
-}
+// dependencyCheckAnalyze {
+//   onlyIf {
+//     !buildDetails.isDevMode()
+//   }
+// }
 
 dependencyCheck  {
   suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
@@ -320,5 +320,6 @@ dependencyCheck  {
   failBuildOnCVSS = 7
 }
 
-check.dependsOn dependencyCheckAnalyze,interlokVerify,interlokServiceTest,interlokVersionReport
+// check.dependsOn dependencyCheckAnalyze,interlokVerify,interlokServiceTest,interlokVersionReport
+check.dependsOn interlokVerify,interlokServiceTest,interlokVersionReport
 assemble.dependsOn installDist
