@@ -1,3 +1,13 @@
+buildscript {
+  repositories {
+    maven { url 'https://plugins.gradle.org/m2/' }
+  }
+  dependencies {
+    classpath 'org.owasp:dependency-check-gradle:5.3.2.1'
+  }
+}
+
+apply plugin: org.owasp.dependencycheck.gradle.DependencyCheckPlugin
 apply plugin: "distribution"
 
 ext {
@@ -298,5 +308,18 @@ installDist {
     destinationDir = new File(interlokDistDirectory)
 }
 
+// dependencyCheckAnalyze {
+//   onlyIf {
+//     !buildDetails.isDevMode()
+//   }
+// }
+
+dependencyCheck  {
+  suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
+  skipConfigurations = buildDetails.isIncludeWar() ? [ "interlokJavadocs", "interlokVerify" ,"antJunit" ] : [ "interlokWar", "interlokJavadocs", "interlokVerify" ,"antJunit" ]
+  failBuildOnCVSS = 7
+}
+
+// check.dependsOn dependencyCheckAnalyze,interlokVerify,interlokServiceTest,interlokVersionReport
 check.dependsOn interlokVerify,interlokServiceTest,interlokVersionReport
 assemble.dependsOn installDist
