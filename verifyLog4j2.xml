@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" monitorInterval="60" shutdownHook="disable">
+  <Appenders>
+
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+    </Console>
+
+  </Appenders>
+  <Loggers>
+
+    <Logger name="org" level="OFF"/>
+    <Logger name="io" level="OFF"/>
+    <Logger name="com" level="OFF"/>
+    <Logger name="net" level="OFF"/>
+    <Logger name="jndi" level="OFF"/>
+    <Logger name="java" level="OFF"/>
+    <Logger name="com.adaptris" level="WARN"/>
+
+    <Root level="OFF">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>
