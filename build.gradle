@@ -14,17 +14,28 @@ ext {
   nexusBaseUrl  = 'https://nexus.adaptris.net'
   log4j2Version='2.13.2'
   slf4jVersion='1.7.30'
-  interlokVersion = project.hasProperty('interlokVersion') ? project.getProperty('interlokVersion') : '3.10.0-RELEASE'
-  interlokUiVersion = project.hasProperty('interlokUiVersion') ? project.getProperty('interlokUiVersion') : interlokVersion
+  interlokVersion = project.findProperty('interlokVersion') ?: '3.10.0-RELEASE'
+  interlokUiVersion = project.findProperty('interlokUiVersion') ?: interlokVersion
   interlokSourceConfig = "${projectDir}/src/main/interlok/config"
   interlokTmpConfigDirectory = "${buildDir}/tmp/config"
   interlokTmpLibDirectory = "${buildDir}/tmp/lib"
   interlokTmpWarDirectory = "${buildDir}/tmp/war"
-  interlokDistDirectory = project.hasProperty('interlokDistDirectory') ? project.getProperty('interlokDistDirectory') :  "${buildDir}/distribution"
-  buildEnv = project.hasProperty('buildEnv') ? project.getProperty('buildEnv') : 'NoBuildEnv'
-  includeWar = project.hasProperty('includeWar') ? project.getProperty('includeWar') : 'false'
-  additionalTemplatedConfiguration = project.hasProperty('additionalTemplatedConfiguration') ? project.getProperty('additionalTemplatedConfiguration') : []
-  additionalTemplatedProperties = project.hasProperty('additionalTemplatedProperties') ? project.getProperty('additionalTemplatedProperties') : []
+  interlokTmpServiceTestLog4j = "${buildDir}/tmp/serviceTestLog4j/log4j2.xml"
+  interlokDistDirectory = project.findProperty('interlokDistDirectory') ?: "${buildDir}/distribution"
+  buildEnv = project.findProperty('buildEnv') ?: 'NoBuildEnv'
+  includeWar = project.findProperty('includeWar') ?: 'false'
+  additionalTemplatedConfiguration = project.findProperty('additionalTemplatedConfiguration') ?: []
+  additionalTemplatedProperties = project.findProperty('additionalTemplatedProperties') ?: []
+  interlokParentBaseUrl = project.findProperty('interlokParentBaseUrl') ?: 'https://raw.githubusercontent.com/adaptris-labs/interlok-build-parent/master'
+  verifyLog4j = "${interlokParentBaseUrl}/verifyLog4j2.xml"
+  serviceTestLog4j = "${interlokParentBaseUrl}/serviceTestLog4j2.xml"
+  verifyMode  = project.hasProperty('verifyMode') ? VerifyModes.valueOf(project.getProperty('verifyMode')) : VerifyModes.WARN
+  interlokVerifyTextReport = "${buildDir}/reports/verify/report.txt"
+  interlokVerifySonarReport = "${buildDir}/reports/verify/report.json"
+}
+
+enum VerifyModes {
+  STRICT, WARN
 }
 
 defaultTasks 'clean', 'check'
@@ -66,6 +77,7 @@ configurations {
     interlokTestRuntime{}
     interlokJavadocs{}
     interlokVerify{}
+    interlokVerifyReport{}
     interlokWar{}
     antJunit{}
     all*.exclude group: 'c3p0'
@@ -128,6 +140,8 @@ dependencies {
   interlokJavadocs group: "com.adaptris", name: "interlok-core", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
   interlokJavadocs group: "com.adaptris", name: "interlok-common", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
 
+  interlokVerifyReport("com.adaptris.labs:interlok-verify-report:1.0-SNAPSHOT")
+
   antJunit ("org.apache.ant:ant-junit:1.10.7")
 }
 
@@ -152,6 +166,15 @@ task localizeConfig(type: Copy) {
     }
 }
 
+task getServiceTestLog4j2 (){
+  group 'Verification'
+  description 'Get service test log4j2.xml'
+  outputs.file new File(interlokTmpServiceTestLog4j)
+  doLast {
+    mkdir(new File(interlokTmpServiceTestLog4j).getParentFile())
+    ant.get(src: serviceTestLog4j, dest: interlokTmpServiceTestLog4j, usetimestamp: 'true', quiet: 'true')
+  }
+}
 
 tasks.register("verifyLauncherJar", Jar) {
     ext.verifyLauncherClasspath = { ->
@@ -184,9 +207,8 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
     group = 'Verification'
     description = 'Check if Interlok config is valid using -configtest'
     doFirst {
-      if(new File("${projectDir}/src/test/resources/log4j2.xml").exists()) {
+      if(new File("$interlokTmpConfigDirectory/log4j2.xml").exists()) {
         ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
-        ant.copy file: "${projectDir}/src/test/resources/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
       }
     }
     workingDir = new File("${buildDir}/tmp")
@@ -195,17 +217,47 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
     args "-configtest"
     environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
     systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
-
+    systemProperty "interlok.logging.url", verifyLog4j
+    standardOutput = new ByteArrayOutputStream()
     doLast {
+      def verifyOutput = standardOutput.toString()
+      def warningsCount = verifyOutput.readLines().size()
+      if (warningsCount > 0) {
+        println "Interlok Verify contains warnings [$warningsCount]"
+        print verifyOutput
+        def reportFile = new File(interlokVerifyTextReport)
+        mkdir(reportFile.getParentFile())
+        reportFile.withOutputStream { stream ->
+          standardOutput.writeTo(stream)
+        }
+        if(verifyMode == VerifyModes.STRICT) {
+          throw new GradleException("Interlok Verify contains warnings [$warningsCount]")
+        }
+      }
       if(new File("$interlokTmpConfigDirectory/log4j2.xml.bk").exists()) {
         ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
       }
     }
 }
 
+def interlokVerifyReport = tasks.register("interlokVerifyReport", JavaExec) {
+    group = 'Test'
+    description = 'Create Interlok verify test reports'
+    onlyIf{
+      interlokVerify.get().didWork
+    }
+    main = 'com.adaptris.labs.verify.CreateVerifyReport'
+    classpath = configurations.interlokVerifyReport
+    args "--reportFile"
+    args interlokVerifyTextReport
+    args "--outputFile"
+    args interlokVerifySonarReport
+}
+
 interlokVerify.configure {
     dependsOn localizeConfig
     dependsOn verifyLauncherJar
+    finalizedBy interlokVerifyReport
 }
 
 tasks.register("serviceTesterLauncherJar", Jar) {
@@ -213,7 +265,7 @@ tasks.register("serviceTesterLauncherJar", Jar) {
     ext.serviceTesterClasspath = { ->
       def testerLibs = [configurations.interlokRuntime.collect { asFileUrl(it.getCanonicalPath()) }.join(' '),
               configurations.interlokTestRuntime.collect { asFileUrl(it.getCanonicalPath()) }.join(' '),
-              asFileUrl(new File("$projectDir/src/test/resources").getCanonicalPath()) + "/"]
+              asFileUrl(new File(interlokTmpServiceTestLog4j).getParentFile().getCanonicalPath()) + "/"]
       return testerLibs.join(' ')
     }
     manifest {
@@ -237,6 +289,7 @@ def interlokServiceTest = tasks.register("interlokServiceTest", JavaExec) {
 
 interlokServiceTest.configure {
     dependsOn serviceTesterLauncherJar
+    dependsOn getServiceTestLog4j2
     finalizedBy interlokServiceTestReport
 }
 
@@ -316,7 +369,7 @@ installDist {
 
 dependencyCheck  {
   suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
-  skipConfigurations = buildDetails.isIncludeWar() ? [ "interlokJavadocs", "interlokVerify" ,"antJunit" ] : [ "interlokWar", "interlokJavadocs", "interlokVerify" ,"antJunit" ]
+  skipConfigurations = buildDetails.isIncludeWar() ? [ "interlokJavadocs", "interlokVerify", "interlokVerifyReport" ,"antJunit" ] : [ "interlokWar", "interlokJavadocs", "interlokVerify", "interlokVerifyReport ,"antJunit" ]
   failBuildOnCVSS = 7
 }
 
