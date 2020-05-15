@@ -222,14 +222,14 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
     doLast {
       def verifyOutput = standardOutput.toString()
       def warningsCount = verifyOutput.readLines().size()
+      def reportFile = new File(interlokVerifyTextReport)
+      mkdir(reportFile.getParentFile())
+      reportFile.withOutputStream { stream ->
+        standardOutput.writeTo(stream)
+      }
       if (warningsCount > 0) {
         println "Interlok Verify contains warnings [$warningsCount]"
         print verifyOutput
-        def reportFile = new File(interlokVerifyTextReport)
-        mkdir(reportFile.getParentFile())
-        reportFile.withOutputStream { stream ->
-          standardOutput.writeTo(stream)
-        }
         if(verifyMode == VerifyModes.STRICT) {
           throw new GradleException("Interlok Verify contains warnings [$warningsCount]")
         }
