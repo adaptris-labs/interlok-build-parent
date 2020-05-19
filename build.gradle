@@ -199,8 +199,7 @@ def interlokVersionReport = tasks.register("interlokVersionReport", JavaExec) {
 }
 
 interlokVersionReport.configure {
-    dependsOn localizeConfig
-    dependsOn verifyLauncherJar
+    dependsOn localizeConfig, verifyLauncherJar
 }
 
 def interlokVerify = tasks.register("interlokVerify", JavaExec) {
@@ -255,8 +254,7 @@ def interlokVerifyReport = tasks.register("interlokVerifyReport", JavaExec) {
 }
 
 interlokVerify.configure {
-    dependsOn localizeConfig
-    dependsOn verifyLauncherJar
+    dependsOn localizeConfig, verifyLauncherJar
     finalizedBy interlokVerifyReport
 }
 
@@ -288,8 +286,7 @@ def interlokServiceTest = tasks.register("interlokServiceTest", JavaExec) {
 }
 
 interlokServiceTest.configure {
-    dependsOn serviceTesterLauncherJar
-    dependsOn getServiceTestLog4j2
+    dependsOn getServiceTestLog4j2, serviceTesterLauncherJar
     finalizedBy interlokServiceTestReport
 }
 
