@@ -108,7 +108,11 @@ if (interlokVersion.endsWith("SNAPSHOT") || interlokUiVersion.endsWith("SNAPSHOT
 }
 
 repositories {
-    mavenCentral()
+    mavenCentral {
+      content {
+        excludeGroupByRegex "com\\.adaptris.*"
+      }
+    }
     maven { url "${nexusBaseUrl}/nexus/content/groups/public" }
     maven { url "${nexusBaseUrl}/nexus/content/groups/interlok" }
 }
