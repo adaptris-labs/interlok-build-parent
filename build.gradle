@@ -108,7 +108,7 @@ if (interlokVersion.endsWith("SNAPSHOT") || interlokUiVersion.endsWith("SNAPSHOT
 }
 
 repositories {
-    mavenCentral {
+    mavenCentral() {
       content {
         excludeGroupByRegex "com\\.adaptris.*"
       }
