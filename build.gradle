@@ -247,7 +247,7 @@ def interlokVerifyReport = tasks.register("interlokVerifyReport", JavaExec) {
     group = 'Test'
     description = 'Create Interlok verify test reports'
     onlyIf{
-      interlokVerify.get().didWork && !interlokVerify.get().state.failure && new File(interlokVerifyTextReport).exists()
+      interlokVerify.get().didWork && new File(interlokVerifyTextReport).exists()
     }
     main = 'com.adaptris.labs.verify.CreateVerifyReport'
     classpath = configurations.interlokVerifyReport
