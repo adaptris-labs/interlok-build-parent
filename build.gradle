@@ -231,7 +231,7 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
         standardOutput.writeTo(stream)
       }
       if (warningsCount > 0) {
-        println "Interlok Verify contains warnings [$warningsCount]"
+        println "\nConfiguration warnings [$warningsCount]:"
         print verifyOutput
         if(verifyMode == VerifyModes.STRICT) {
           throw new GradleException("Interlok Verify contains warnings [$warningsCount]")
@@ -247,7 +247,7 @@ def interlokVerifyReport = tasks.register("interlokVerifyReport", JavaExec) {
     group = 'Test'
     description = 'Create Interlok verify test reports'
     onlyIf{
-      interlokVerify.get().didWork
+      interlokVerify.get().didWork && !interlokVerify.get().state.failure && new File(interlokVerifyTextReport).exists()
     }
     main = 'com.adaptris.labs.verify.CreateVerifyReport'
     classpath = configurations.interlokVerifyReport
