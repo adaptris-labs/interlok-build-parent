@@ -11,7 +11,7 @@ apply plugin: org.owasp.dependencycheck.gradle.DependencyCheckPlugin
 apply plugin: "distribution"
 
 ext {
-  nexusBaseUrl  = 'https://nexus.adaptris.net'
+  nexusBaseUrl  = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net'
   log4j2Version='2.13.3'
   slf4jVersion='1.7.30'
   interlokVersion = project.findProperty('interlokVersion') ?: '3.10.1-RELEASE'
