@@ -11,6 +11,7 @@ apply plugin: org.owasp.dependencycheck.gradle.DependencyCheckPlugin
 apply plugin: "distribution"
 
 ext {
+  localInterlokRepo = project.findProperty('localInterlokRepo') ?: 'unknown'
   nexusBaseUrl  = 'https://nexus.adaptris.net'
   log4j2Version='2.13.3'
   slf4jVersion='1.7.30'
@@ -87,7 +88,9 @@ configurations {
     all*.exclude group: 'org.glassfish.hk2.external'
     all*.exclude group: 'xalan', module: 'xalan'
     all*.exclude group: 'net.sf.saxon', module: 'saxon'
-    all*.exclude group: 'org.codehaus.woodstox'
+    // Exclude because com.fasterxml.woodstox:woodstox-core should take precedence
+    // however, stax2-api still lives on in the org.codehaus.woodstox group
+    all*.exclude group: 'org.codehaus.woodstox', module: 'woodstox-core-asl'
     all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
     all*.exclude group: 'javax.el', module: 'javax.el-api'
     all*.exclude group: 'org.hibernate', module: 'hibernate-validator'
@@ -112,6 +115,9 @@ repositories {
       content {
         excludeGroupByRegex "com\\.adaptris.*"
       }
+    }
+    if (localInterlokRepo != "unknown") {
+      maven { url "$localInterlokRepo" }
     }
     maven { url "${nexusBaseUrl}/nexus/content/groups/public" }
     maven { url "${nexusBaseUrl}/nexus/content/groups/interlok" }

@@ -51,6 +51,7 @@ A full example with configuration is here : [build-parent-json-csv](https://gith
 * `gradle clean check` will verify the configuration unmarshalls; execute service-tester if `src/test/interlok/service-test.xml` exists; and finally runs a version report.
 * `gradle clean assemble` will build your distribution, you end up with an Interlok installed into `./build/distribution`
 * `gradle clean build` will execute both the steps above
+* `gradle dependencyCheckAnalyze` will execute the OWASP dependency check analysis; this isn't part of the normal build chain.
 
 ## Next steps
 
@@ -72,6 +73,8 @@ There is support for build environments; you can pass in a gradle property to sp
 The same is possible with `log4j2.xml` by creating files with the following pattern `log4j2.xml.{buildenv}`.
 
 If you don't want to assemble into `./build/distribution` then you can override that location by defining a `interlokDistDirectory=` in your gradle properties (or on the commandline). We generally discourage this, unless you are only running the assemble task.
+
+If you have a local repository that you want to use (e.g. you have custom components not in our artifact repository), then you can specify an additional property `localInterlokRepo` to point to your artifact repository e.g. `gradle -PlocalInterlokRepo=http://my.artifact.repo/groups/interlok assemble`. Any _url_ supported by gradle may be used here.
 
 ### Additional Build Specific Configuration
 
