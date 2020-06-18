@@ -88,7 +88,9 @@ configurations {
     all*.exclude group: 'org.glassfish.hk2.external'
     all*.exclude group: 'xalan', module: 'xalan'
     all*.exclude group: 'net.sf.saxon', module: 'saxon'
-    all*.exclude group: 'org.codehaus.woodstox'
+    // Exclude because com.fasterxml.woodstox:woodstox-core should take precedence
+    // however, stax2-api still lives on in the org.codehaus.woodstox group
+    all*.exclude group: 'org.codehaus.woodstox', module: 'woodstox-core-asl'
     all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
     all*.exclude group: 'javax.el', module: 'javax.el-api'
     all*.exclude group: 'org.hibernate', module: 'hibernate-validator'
