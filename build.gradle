@@ -31,8 +31,8 @@ ext {
   verifyLog4j = "${interlokParentBaseUrl}/verifyLog4j2.xml"
   serviceTestLog4j = "${interlokParentBaseUrl}/serviceTestLog4j2.xml"
   verifyMode  = project.hasProperty('verifyMode') ? VerifyModes.valueOf(project.getProperty('verifyMode')) : VerifyModes.WARN
-  interlokVerifyTextReport = "${buildDir}/reports/verify/report.txt"
-  interlokVerifySonarReport = "${buildDir}/reports/verify/report.json"
+  interlokVerifyTextReport = "${buildDir}/reports/interlok/verify/report.txt"
+  interlokVerifySonarReport = "${buildDir}/reports/interlok/verify/report.json"
 }
 
 enum VerifyModes {
@@ -150,7 +150,7 @@ dependencies {
   interlokJavadocs group: "com.adaptris", name: "interlok-core", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
   interlokJavadocs group: "com.adaptris", name: "interlok-common", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
 
-  interlokVerifyReport("com.adaptris.labs:interlok-verify-report:1.0.0")
+  interlokVerifyReport("com.adaptris.labs:interlok-verify-report:2.0.0")
 
   antJunit ("org.apache.ant:ant-junit:1.10.8")
 }
@@ -233,8 +233,9 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
       def warningsCount = verifyOutput.readLines().size()
       def reportFile = new File(interlokVerifyTextReport)
       mkdir(reportFile.getParentFile())
-      reportFile.withOutputStream { stream ->
-        standardOutput.writeTo(stream)
+      reportFile.createNewFile()
+      verifyOutput.eachLine {
+        reportFile.append("CODE_SMELL,INFO," + it + "\n")
       }
       if (warningsCount > 0) {
         println "\nConfiguration warnings [$warningsCount]:"
