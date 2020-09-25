@@ -33,6 +33,7 @@ ext {
   verifyMode  = project.hasProperty('verifyMode') ? VerifyModes.valueOf(project.getProperty('verifyMode')) : VerifyModes.WARN
   interlokVerifyTextReport = "${buildDir}/reports/interlok/verify/report.txt"
   interlokVerifySonarReport = "${buildDir}/reports/interlok/verify/report.json"
+  interlokVerifyEnvironmentPropertiesFile = project.findProperty('interlokVerifyEnvironmentPropertiesFile') ?: "${projectDir}/.env"
 }
 
 enum VerifyModes {
@@ -50,6 +51,17 @@ ext.buildDetails = [
     return includeWar.equals("true") || buildEnv.equals("dev")
   }
 ]
+
+def loadPropertiesFromFile(filepath) {
+  Properties properties = new Properties()
+  File propertiesFile = new File(filepath)
+  if(propertiesFile.exists()){
+    propertiesFile.withInputStream {
+      properties.load(it)
+    }
+  }
+  return properties
+}
 
 def asFileUrl(filepath) {
   return "file:///" + new java.net.URI(null, filepath, null).toASCIIString();
@@ -224,6 +236,7 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
     classpath = files(verifyLauncherJar.archivePath)
     main = 'com.adaptris.core.management.SimpleBootstrap'
     args "-configtest"
+    environment loadPropertiesFromFile(interlokVerifyEnvironmentPropertiesFile)
     environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
     systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
     systemProperty "interlok.logging.url", verifyLog4j
