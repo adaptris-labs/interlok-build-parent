@@ -149,7 +149,7 @@ dependencies {
   interlokRuntime ("org.apache.logging.log4j:log4j-1.2-api:$log4j2Version")
   interlokRuntime ("org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}")
   interlokRuntime ("org.apache.logging.log4j:log4j-api:$log4j2Version")
-  interlokRuntime ("com.sun.mail:jakarta.mail:1.6.5")
+  interlokRuntime ("com.sun.mail:jakarta.mail:2.0.0")
   interlokRuntime ("com.sun.activation:jakarta.activation:1.2.2")
   interlokRuntime ("jakarta.validation:jakarta.validation-api:2.0.2")
 
