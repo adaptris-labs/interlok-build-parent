@@ -3,7 +3,7 @@ buildscript {
     maven { url 'https://plugins.gradle.org/m2/' }
   }
   dependencies {
-    classpath 'org.owasp:dependency-check-gradle:5.3.2.1'
+    classpath 'org.owasp:dependency-check-gradle:6.0.3'
   }
 }
 
@@ -13,9 +13,9 @@ apply plugin: "distribution"
 ext {
   localInterlokRepo = project.findProperty('localInterlokRepo') ?: 'unknown'
   nexusBaseUrl  = 'https://nexus.adaptris.net'
-  log4j2Version='2.13.3'
+  log4j2Version='2.14.0'
   slf4jVersion='1.7.30'
-  interlokVersion = project.findProperty('interlokVersion') ?: '3.10.2-RELEASE'
+  interlokVersion = project.findProperty('interlokVersion') ?: '3.11.1-RELEASE'
   interlokUiVersion = project.findProperty('interlokUiVersion') ?: interlokVersion
   interlokSourceConfig = "${projectDir}/src/main/interlok/config"
   interlokTmpConfigDirectory = "${buildDir}/tmp/config"
@@ -31,8 +31,9 @@ ext {
   verifyLog4j = "${interlokParentBaseUrl}/verifyLog4j2.xml"
   serviceTestLog4j = "${interlokParentBaseUrl}/serviceTestLog4j2.xml"
   verifyMode  = project.hasProperty('verifyMode') ? VerifyModes.valueOf(project.getProperty('verifyMode')) : VerifyModes.WARN
-  interlokVerifyTextReport = "${buildDir}/reports/verify/report.txt"
-  interlokVerifySonarReport = "${buildDir}/reports/verify/report.json"
+  interlokVerifyTextReport = "${buildDir}/reports/interlok/verify/report.txt"
+  interlokVerifySonarReport = "${buildDir}/reports/interlok/verify/report.json"
+  interlokVerifyEnvironmentPropertiesFile = project.findProperty('interlokVerifyEnvironmentPropertiesFile') ?: "${projectDir}/.env"
 }
 
 enum VerifyModes {
@@ -50,6 +51,17 @@ ext.buildDetails = [
     return includeWar.equals("true") || buildEnv.equals("dev")
   }
 ]
+
+def loadPropertiesFromFile(filepath) {
+  Properties properties = new Properties()
+  File propertiesFile = new File(filepath)
+  if(propertiesFile.exists()){
+    propertiesFile.withInputStream {
+      properties.load(it)
+    }
+  }
+  return properties
+}
 
 def asFileUrl(filepath) {
   return "file:///" + new java.net.URI(null, filepath, null).toASCIIString();
@@ -150,9 +162,9 @@ dependencies {
   interlokJavadocs group: "com.adaptris", name: "interlok-core", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
   interlokJavadocs group: "com.adaptris", name: "interlok-common", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
 
-  interlokVerifyReport("com.adaptris.labs:interlok-verify-report:1.0.0")
+  interlokVerifyReport("com.adaptris.labs:interlok-verify-report:2.0.0")
 
-  antJunit ("org.apache.ant:ant-junit:1.10.8")
+  antJunit ("org.apache.ant:ant-junit:1.10.9")
 }
 
 task localizeConfig(type: Copy) {
@@ -224,6 +236,7 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
     classpath = files(verifyLauncherJar.archivePath)
     main = 'com.adaptris.core.management.SimpleBootstrap'
     args "-configtest"
+    environment loadPropertiesFromFile(interlokVerifyEnvironmentPropertiesFile)
     environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
     systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
     systemProperty "interlok.logging.url", verifyLog4j
@@ -233,8 +246,9 @@ def interlokVerify = tasks.register("interlokVerify", JavaExec) {
       def warningsCount = verifyOutput.readLines().size()
       def reportFile = new File(interlokVerifyTextReport)
       mkdir(reportFile.getParentFile())
-      reportFile.withOutputStream { stream ->
-        standardOutput.writeTo(stream)
+      reportFile.createNewFile()
+      verifyOutput.eachLine {
+        reportFile.append("CODE_SMELL,INFO," + it + "\n")
       }
       if (warningsCount > 0) {
         println "\nConfiguration warnings [$warningsCount]:"
