@@ -308,9 +308,6 @@ def interlokVerifyConfigCheck= tasks.register("interlokVerifyConfigCheck", JavaE
   environment loadPropertiesFromFile(interlokVerifyEnvironmentPropertiesFile)
   environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
   systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
-  systemProperty "interlok.verify.deprecated.filename", interlokVerifyTextReport
-  systemProperty "interlok.verify.deprecated.category", interlokVerifyCategory
-  systemProperty "interlok.verify.deprecated.level", interlokVerifyLevel
   systemProperty "interlok.verify.warning.filename", interlokVerifyTextReport
   systemProperty "interlok.verify.warning.category", interlokVerifyCategory
   systemProperty "interlok.verify.warning.level", interlokVerifyLevel
