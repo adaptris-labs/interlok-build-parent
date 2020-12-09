@@ -38,6 +38,9 @@ ext {
   interlokVerifyTextReportFile = new File(interlokVerifyTextReport)
   interlokVerifySonarReport = "${buildDir}/reports/interlok/verify/report.json"
   interlokVerifyEnvironmentPropertiesFile = project.findProperty('interlokVerifyEnvironmentPropertiesFile') ?: "${projectDir}/.env"
+  interlokVerifyCategory = project.findProperty('interlokVerifyCategory') ?: "CODE_SMELL"
+  interlokVerifyLevel = project.findProperty('interlokVerifyLevel') ?: "INFO"
+  interlokVerifyPrefix = "$interlokVerifyCategory,$interlokVerifyLevel,"
 }
 
 enum VerifyModes {
@@ -71,7 +74,7 @@ ext.verifyReport = [
       if (warningsCount > 0) {
         println "\nConfiguration warnings [$warningsCount]:"
         content.each {
-          println it
+          println it.replaceAll(interlokVerifyPrefix, "")
         }
         if(verifyMode == VerifyModes.STRICT) {
           throw new GradleException("Interlok Verify contains warnings [$warningsCount]")
@@ -281,7 +284,7 @@ def interlokVerifyLog4j= tasks.register("interlokVerifyLog4j", JavaExec) {
     def verifyOutput = standardOutput.toString()
     interlokVerifyTextReportFile.createNewFile()
     verifyOutput.eachLine {
-      interlokVerifyTextReportFile.append("CODE_SMELL,INFO," + it + "\n")
+      interlokVerifyTextReportFile.append(interlokVerifyPrefix + it + "\n")
     }
     if(new File("$interlokTmpConfigDirectory/log4j2.xml.bk").exists()) {
       ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
@@ -306,8 +309,8 @@ def interlokVerifyConfigCheck= tasks.register("interlokVerifyConfigCheck", JavaE
   environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
   systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
   systemProperty "interlok.verify.deprecated.filename", interlokVerifyTextReport
-  // systemProperty "interlok.verify.deprecated.category", "CODE_SMELL"
-  // systemProperty "interlok.verify.deprecated.level", "INFO"
+  systemProperty "interlok.verify.deprecated.category", interlokVerifyCategory
+  systemProperty "interlok.verify.deprecated.level", interlokVerifyLevel
 }
 
 
