@@ -311,6 +311,9 @@ def interlokVerifyConfigCheck= tasks.register("interlokVerifyConfigCheck", JavaE
   systemProperty "interlok.verify.deprecated.filename", interlokVerifyTextReport
   systemProperty "interlok.verify.deprecated.category", interlokVerifyCategory
   systemProperty "interlok.verify.deprecated.level", interlokVerifyLevel
+  systemProperty "interlok.verify.warning.filename", interlokVerifyTextReport
+  systemProperty "interlok.verify.warning.category", interlokVerifyCategory
+  systemProperty "interlok.verify.warning.level", interlokVerifyLevel
 }
 
 
