@@ -199,7 +199,7 @@ dependencies {
   interlokJavadocs group: "com.adaptris", name: "interlok-core", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
   interlokJavadocs group: "com.adaptris", name: "interlok-common", version: "$interlokVersion", classifier: "javadoc", changing: true, transitive: false
 
-  interlokVerifyReport("com.adaptris.labs:interlok-verify-report:2.0.0")
+  interlokVerifyReport("com.adaptris.labs:interlok-verify-report:2.1.0")
 
   antJunit ("org.apache.ant:ant-junit:1.10.9")
 }
