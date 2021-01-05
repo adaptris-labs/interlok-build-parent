@@ -459,7 +459,7 @@ installDist {
 
 dependencyCheck  {
   suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
-  skipConfigurations = buildDetails.isIncludeWar() ? [ "interlokJavadocs", "interlokVerify", "interlokVerifyReport", "antJunit" ] : [ "interlokWar", "interlokJavadocs", "interlokVerify", "interlokVerifyReport", "antJunit" ]
+  scanConfigurations = buildDetails.isIncludeWar() ? [ "interlokWar", "interlokRuntime" ] : [ "interlokRuntime" ]
   failBuildOnCVSS = 7
 }
 
