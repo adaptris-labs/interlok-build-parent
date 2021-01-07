@@ -82,7 +82,7 @@ If you have a local repository that you want to use (e.g. you have custom compon
 
 ### Additional Build Specific Configuration
 
-If you need additional build specific configuration, these can be added by setting the follow properties `additionalTemplatedConfiguration` or `additionalTemplatedProperties`:
+If you need additional build specific configuration, these can be added by setting the follow properties `additionalTemplatedConfiguration` or `additionalTemplatedProperties` in your build.gradle (in the `ext{}` block) :
 
 ```
 additionalTemplatedConfiguration = [
@@ -94,7 +94,7 @@ additionalTemplatedProperties = [
 ]
 ```
 
-This gives us a supported table of where template files are treated subtly different to property files. The expectation is the property files may need to be maintained by the UI so it needs to fit that default convention.
+Template files are named slightly differently to property files since the expectation is that property files may need to be maintained by the UI so it needs to fit that default convention. With no additional properties, then `log42j.xml.{buildEnv}` and `variables-local-{buildEnv}.properties` are automagically copied and overridden. 
 
 | Setting | BuildEnv | Behaviour |
 |----|----|----|
