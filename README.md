@@ -94,7 +94,7 @@ additionalTemplatedProperties = [
 ]
 ```
 
-Template files are named slightly differently to property files since the expectation is that property files may need to be maintained by the UI so it needs to fit that default convention. With no additional properties, then `log42j.xml.{buildEnv}` and `variables-local-{buildEnv}.properties` are automagically copied and overridden. 
+Template files are named slightly differently to property files since the expectation is that property files may need to be maintained by the UI so it needs to fit that default convention. `log42j.xml.{buildEnv}` and `variables-local-{buildEnv}.properties` are always automagically copied and overridden; additional files may be requested by explicitly setting them.
 
 | Setting | BuildEnv | Behaviour |
 |----|----|----|
