@@ -74,7 +74,7 @@ There is support for build environments; you can pass in a gradle property to sp
 * __If the `buildEnv` is set to the _dev_ then the service tester jars are copied into the distribution in the expectation that you will be using the UI service tester page__.
 
 
-The same is possible with `log4j2.xml` by creating files with the following pattern `log4j2.xml.{buildenv}`.
+The same is possible with `log4j2.xml` by creating a file with the following pattern `log4j2.xml.{buildEnv}`.
 
 If you don't want to assemble into `./build/distribution` then you can override that location by defining a `interlokDistDirectory=` in your gradle properties (or on the commandline). We generally discourage this, unless you are only running the assemble task.
 
@@ -93,6 +93,16 @@ additionalTemplatedProperties = [
   'kinesis-local'
 ]
 ```
+
+This gives us a supported table of where template files are treated subtly different to property files. The expectation is the property files may need to be maintained by the UI so it needs to fit that default convention.
+
+| Setting | BuildEnv | Behaviour |
+|----|----|----|
+| - | dev | If `src/main/interlok/config/log4j2.xml.dev` exists then this is used; otherwise log4j2.xml is the file used during `assemble` |
+| - | dev | If `src/main/interlok/config/variables-local-dev.properties` exists then this is used; otherwise variables-local.properties is the file used during `assemble` |
+| additionalTemplatedConfiguration = ['jetty.xml', 'ApplicationInsights.xml' ] | dev | If `src/main/interlok/config/jetty.xml.dev` exists then this is used; otherwise jetty.xml is the file used during `assemble`. The same behaviour is applied for `src/main/interlok/config/ApplicationInsights.xml.dev` |
+| additionalTemplatedConfiguration = ['aws' ] | dev | If `src/main/interlok/config/aws-dev.properties` exists then this is used; otherwise aws.properties is the file used during `assemble` |
+
 
 ### Overriding system properties / environment variables during InterlokVerify
 
