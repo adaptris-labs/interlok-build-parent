@@ -17,7 +17,7 @@ ext {
   nexusBaseUrl  = 'https://nexus.adaptris.net'
   log4j2Version='2.14.0'
   slf4jVersion='1.7.30'
-  interlokVersion = project.findProperty('interlokVersion') ?: '3.11.1-RELEASE'
+  interlokVersion = project.findProperty('interlokVersion') ?: '3.12.0-RELEASE'
   verifyReportConfigCheckAvailable = '3.12-SNAPSHOT'
   interlokUiVersion = project.findProperty('interlokUiVersion') ?: interlokVersion
   interlokSourceConfig = "${projectDir}/src/main/interlok/config"
