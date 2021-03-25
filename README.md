@@ -127,3 +127,12 @@ interlokVerifySystemProperties = [
 ### Detecting changes to the parent build gradle.
 
 Since we're using `apply from`; this is effectively treated as a script plugin, which means that it is added to your local module cache (`~/.gradle/caches/modules-2` or similar). This cache is managed by the gradle daemon and any changes will be detected automatically (probably daily). However, in some situations you may be after the latest and greatest version of the parent gradle file. If that's the case then you can use the commandline switch _--refresh-dependencies_ to force gradle to refresh the state of all your dependencies : `./gradlew --refresh-dependences clean check assemble`. This should force a re-download of the parent gradle.
+
+### Interlok License
+
+If you're using licensed components check will fail, the the parent supports reading license keys from environment variables.
+
+```shell
+export INTERLOK_LICENSE_KEY="a.."
+gradle clean check
+```
