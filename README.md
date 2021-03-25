@@ -74,7 +74,7 @@ There is support for build environments; you can pass in a gradle property to sp
 * __If the `buildEnv` is set to the _dev_ then the service tester jars are copied into the distribution in the expectation that you will be using the UI service tester page__.
 
 
-The same is possible with `log4j2.xml` by creating files with the following pattern `log4j2.xml.{buildenv}`.
+The same is possible with `log4j2.xml` by creating a file with the following pattern `log4j2.xml.{buildEnv}`.
 
 If you don't want to assemble into `./build/distribution` then you can override that location by defining a `interlokDistDirectory=` in your gradle properties (or on the commandline). We generally discourage this, unless you are only running the assemble task.
 
@@ -82,7 +82,7 @@ If you have a local repository that you want to use (e.g. you have custom compon
 
 ### Additional Build Specific Configuration
 
-If you need additional build specific configuration, these can be added by setting the follow properties `additionalTemplatedConfiguration` or `additionalTemplatedProperties`:
+If you need additional build specific configuration, these can be added by setting the follow properties `additionalTemplatedConfiguration` or `additionalTemplatedProperties` in your build.gradle (in the `ext{}` block) :
 
 ```
 additionalTemplatedConfiguration = [
@@ -93,6 +93,16 @@ additionalTemplatedProperties = [
   'kinesis-local'
 ]
 ```
+
+Template files are named slightly differently to property files since the expectation is that property files may need to be maintained by the UI so it needs to fit that default convention. `log42j.xml.{buildEnv}` and `variables-local-{buildEnv}.properties` are always automagically copied and overridden; additional files may be requested by explicitly setting them.
+
+| Setting | BuildEnv | Behaviour |
+|----|----|----|
+| - | dev | If `src/main/interlok/config/log4j2.xml.dev` exists then this is used; otherwise log4j2.xml is the file used during `assemble` |
+| - | dev | If `src/main/interlok/config/variables-local-dev.properties` exists then this is used; otherwise variables-local.properties is the file used during `assemble` |
+| additionalTemplatedConfiguration = ['jetty.xml', 'ApplicationInsights.xml' ] | dev | If `src/main/interlok/config/jetty.xml.dev` exists then this is used; otherwise jetty.xml is the file used during `assemble`. The same behaviour is applied for `src/main/interlok/config/ApplicationInsights.xml.dev` |
+| additionalTemplatedProperties = ['aws' ] | dev | If `src/main/interlok/config/aws-dev.properties` exists then this is used; otherwise aws.properties is the file used during `assemble` |
+
 
 ### Overriding system properties / environment variables during InterlokVerify
 
@@ -117,3 +127,12 @@ interlokVerifySystemProperties = [
 ### Detecting changes to the parent build gradle.
 
 Since we're using `apply from`; this is effectively treated as a script plugin, which means that it is added to your local module cache (`~/.gradle/caches/modules-2` or similar). This cache is managed by the gradle daemon and any changes will be detected automatically (probably daily). However, in some situations you may be after the latest and greatest version of the parent gradle file. If that's the case then you can use the commandline switch _--refresh-dependencies_ to force gradle to refresh the state of all your dependencies : `./gradlew --refresh-dependences clean check assemble`. This should force a re-download of the parent gradle.
+
+### Interlok License
+
+If you're using licensed components check will fail, the the parent supports reading license keys from environment variables.
+
+```shell
+export INTERLOK_LICENSE_KEY="a.."
+gradle clean check
+```
