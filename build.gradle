@@ -420,6 +420,14 @@ task interlokWarDist(type: Copy) {
   into interlokTmpWarDirectory
 }
 
+task interlokJavadocsDist(type: Copy) {
+  onlyIf {
+    buildDetails.isIncludeWar()
+  }
+  from project.configurations.interlokJavadocs
+  into interlokTmpDocsDirectory
+}
+
 distributions {
     main {
         contents {
@@ -438,7 +446,7 @@ distributions {
                 from(interlokWarDist)
             }
             into('docs/javadocs') {
-              from(project.configurations.interlokJavadocs)
+              from(interlokJavadocsDist)
             }
             rename '(.*)-[0-9]+\\..*.jar', '$1.jar'
             rename '(.*)-[0-9]+\\..*.war', '$1.war'
