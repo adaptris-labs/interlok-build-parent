@@ -24,6 +24,7 @@ ext {
   interlokTmpConfigDirectory = "${buildDir}/tmp/config"
   interlokTmpLibDirectory = "${buildDir}/tmp/lib"
   interlokTmpWarDirectory = "${buildDir}/tmp/war"
+  interlokTmpDocsDirectory = "${buildDir}/tmp/docs"
   interlokTmpServiceTestLog4j = "${buildDir}/tmp/serviceTestLog4j/log4j2.xml"
   interlokDistDirectory = project.findProperty('interlokDistDirectory') ?: "${buildDir}/distribution"
   buildEnv = project.findProperty('buildEnv') ?: 'NoBuildEnv'
