@@ -86,8 +86,17 @@ ext.verifyReport = [
   },
 
   init: { ->
+    if(new File("$interlokTmpConfigDirectory/log4j2.xml").exists()) {
+      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
+    }
     delete interlokVerifyTextReportFile
     mkdir(interlokVerifyTextReportFile.getParentFile())
+  },
+
+  close: { ->
+    if(new File("$interlokTmpConfigDirectory/log4j2.xml.bk").exists()) {
+      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+    }
   }
 ]
 
@@ -268,9 +277,6 @@ def interlokVerifyLog4j= tasks.register("interlokVerifyLog4j", JavaExec) {
     !verifyReport.verifyViaConfigCheck()
   }
   doFirst {
-    if(new File("$interlokTmpConfigDirectory/log4j2.xml").exists()) {
-      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
-    }
     verifyReport.init()
   }
   workingDir = new File("${buildDir}/tmp")
@@ -289,9 +295,7 @@ def interlokVerifyLog4j= tasks.register("interlokVerifyLog4j", JavaExec) {
     verifyOutput.eachLine {
       interlokVerifyTextReportFile.append(interlokVerifyPrefix + it + "\n")
     }
-    if(new File("$interlokTmpConfigDirectory/log4j2.xml.bk").exists()) {
-      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
-    }
+    verifyReport.close()
   }
 }
 
@@ -312,9 +316,13 @@ def interlokVerifyConfigCheck= tasks.register("interlokVerifyConfigCheck", JavaE
   environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
   systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
   systemProperties interlokVerifyLicenseProperties
+  systemProperty "interlok.logging.url", verifyLog4j
   systemProperty "interlok.verify.warning.filename", interlokVerifyTextReport
   systemProperty "interlok.verify.warning.category", interlokVerifyCategory
   systemProperty "interlok.verify.warning.level", interlokVerifyLevel
+  doLast {
+    verifyReport.close()
+  }
 }
 
 
