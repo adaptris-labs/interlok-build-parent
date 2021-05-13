@@ -477,6 +477,12 @@ installDist {
 //   }
 // }
 
+task logDeprecation {
+  doLast {
+    logger.warn("#### Switch to using 'https://github.com/adaptris/interlok-build-parent/' instead")
+  }
+}
+
 dependencyCheck  {
   suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
   scanConfigurations = buildDetails.isIncludeWar() ? [ "interlokWar", "interlokRuntime" ] : [ "interlokRuntime" ]
@@ -484,5 +490,5 @@ dependencyCheck  {
 }
 
 // check.dependsOn dependencyCheckAnalyze,interlokVerify,interlokServiceTest,interlokVersionReport
-check.dependsOn interlokVerify,interlokServiceTest,interlokVersionReport
+check.dependsOn logDeprecation,interlokVerify,interlokServiceTest,interlokVersionReport
 assemble.dependsOn installDist
