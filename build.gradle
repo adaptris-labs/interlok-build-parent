@@ -5,7 +5,7 @@ buildscript {
     maven { url 'https://plugins.gradle.org/m2/' }
   }
   dependencies {
-    classpath 'org.owasp:dependency-check-gradle:6.1.3'
+    classpath 'org.owasp:dependency-check-gradle:6.1.5'
   }
 }
 
@@ -86,8 +86,17 @@ ext.verifyReport = [
   },
 
   init: { ->
+    if(new File("$interlokTmpConfigDirectory/log4j2.xml").exists()) {
+      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
+    }
     delete interlokVerifyTextReportFile
     mkdir(interlokVerifyTextReportFile.getParentFile())
+  },
+
+  close: { ->
+    if(new File("$interlokTmpConfigDirectory/log4j2.xml.bk").exists()) {
+      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
+    }
   }
 ]
 
@@ -268,9 +277,6 @@ def interlokVerifyLog4j= tasks.register("interlokVerifyLog4j", JavaExec) {
     !verifyReport.verifyViaConfigCheck()
   }
   doFirst {
-    if(new File("$interlokTmpConfigDirectory/log4j2.xml").exists()) {
-      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml", tofile: "$interlokTmpConfigDirectory/log4j2.xml.bk"
-    }
     verifyReport.init()
   }
   workingDir = new File("${buildDir}/tmp")
@@ -289,9 +295,7 @@ def interlokVerifyLog4j= tasks.register("interlokVerifyLog4j", JavaExec) {
     verifyOutput.eachLine {
       interlokVerifyTextReportFile.append(interlokVerifyPrefix + it + "\n")
     }
-    if(new File("$interlokTmpConfigDirectory/log4j2.xml.bk").exists()) {
-      ant.move file: "$interlokTmpConfigDirectory/log4j2.xml.bk", tofile: "$interlokTmpConfigDirectory/log4j2.xml"
-    }
+    verifyReport.close()
   }
 }
 
@@ -312,9 +316,13 @@ def interlokVerifyConfigCheck= tasks.register("interlokVerifyConfigCheck", JavaE
   environment project.hasProperty('interlokVerifyEnvironmentProperties') ? project.getProperty('interlokVerifyEnvironmentProperties') : [:]
   systemProperties project.hasProperty('interlokVerifySystemProperties') ? project.getProperty('interlokVerifySystemProperties') : [:]
   systemProperties interlokVerifyLicenseProperties
+  systemProperty "interlok.logging.url", verifyLog4j
   systemProperty "interlok.verify.warning.filename", interlokVerifyTextReport
   systemProperty "interlok.verify.warning.category", interlokVerifyCategory
   systemProperty "interlok.verify.warning.level", interlokVerifyLevel
+  doLast {
+    verifyReport.close()
+  }
 }
 
 
@@ -469,6 +477,12 @@ installDist {
 //   }
 // }
 
+task logDeprecation {
+  doLast {
+    logger.warn("#### Switch to using 'https://github.com/adaptris/interlok-build-parent/' instead")
+  }
+}
+
 dependencyCheck  {
   suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
   scanConfigurations = buildDetails.isIncludeWar() ? [ "interlokWar", "interlokRuntime" ] : [ "interlokRuntime" ]
@@ -476,5 +490,5 @@ dependencyCheck  {
 }
 
 // check.dependsOn dependencyCheckAnalyze,interlokVerify,interlokServiceTest,interlokVersionReport
-check.dependsOn interlokVerify,interlokServiceTest,interlokVersionReport
+check.dependsOn logDeprecation,interlokVerify,interlokServiceTest,interlokVersionReport
 assemble.dependsOn installDist
