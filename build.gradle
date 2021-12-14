@@ -15,8 +15,8 @@ apply plugin: "distribution"
 ext {
   localInterlokRepo = project.findProperty('localInterlokRepo') ?: 'unknown'
   nexusBaseUrl  = 'https://nexus.adaptris.net'
-  log4j2Version='2.14.1'
-  slf4jVersion='1.7.30'
+  log4j2Version='2.16.0'
+  slf4jVersion='1.7.32'
   interlokVersion = project.findProperty('interlokVersion') ?: '3.12.0-RELEASE'
   verifyReportConfigCheckAvailable = '3.12-SNAPSHOT'
   interlokUiVersion = project.findProperty('interlokUiVersion') ?: interlokVersion
@@ -477,9 +477,10 @@ installDist {
 //   }
 // }
 
-task logDeprecation {
+task logDeprecated {
   doLast {
-    logger.warn("#### Switch to using 'https://github.com/adaptris/interlok-build-parent/' instead")
+    logger.error("Switch to use 'https://github.com/adaptris/interlok-build-parent/' instead")
+    throw new GradleException("No longer supported, Please switch to use 'https://github.com/adaptris/interlok-build-parent/'.")
   }
 }
 
@@ -490,5 +491,6 @@ dependencyCheck  {
 }
 
 // check.dependsOn dependencyCheckAnalyze,interlokVerify,interlokServiceTest,interlokVersionReport
-check.dependsOn logDeprecation,interlokVerify,interlokServiceTest,interlokVersionReport
+check.dependsOn logDeprecated,interlokVerify,interlokServiceTest,interlokVersionReport
+installDist.dependsOn logDeprecated
 assemble.dependsOn installDist
