@@ -4,7 +4,7 @@ The suggested name was bookish-parakeet.
 
 This is a gradle file that can be applied to your gradle file to simplify things bootstrapping your Interlok project. Gradle 5.x+ is required. Note that `mavenCentral()` doesn't appear to be available if we execute using gradle-5.2, but is available on gradle-5.6.3. We have tested with gradle-5.6.3 so YMMV to be honest vis-a-vis the gradle version.
 
-__This project is archived and migrated to : https://github.com/adaptris/interlok-build-parent __
+__This project is archived and migrated to : https://github.com/adaptris/interlok-build-parent__
 
 ## Usage
 
